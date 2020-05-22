@@ -1,0 +1,14 @@
+https://github.com/
+https://kite.com
+https://contrib.spip.net/
+https://docs.python.org/
+https://httpbin.org/#/HTTP_Methods
+http://exemple.fr/
+http://being.com/
+http://www.appdynamics.com
+http://www.google.com
+http://google.fr
+http://www.twitter.com
+http://www.google.com/asdfasdfasdf
+http://www.cnn.com
+http://www.NotARealDomainJustMadeItUpFoobar.co
