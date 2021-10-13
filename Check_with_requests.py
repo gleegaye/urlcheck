@@ -1,22 +1,29 @@
 # -*- coding: utf-8 -*-
 
-import urllib, urllib.request
+
 import requests
 import csv, re
-from datetime import date,datetime
-from socket import timeout
 import time
 import os, sys, pathlib
 import logging
 import threading
+from datetime import date,datetime
+from socket import timeout
+from os import system, name
 
 
 
 # Remove all whitespace in file
 # ^(\s)*$\n
 
-#clear = lambda: os.system('clear') # linux
-clear = lambda: os.system('cls') # windows
+# nettoyer le terminal
+def clear():
+    # for windows
+    if name == 'nt':
+        _ = system('cls')
+    # for mac and linux
+    else:
+        _ = system('clear')
 clear()
 
 GREEN = '\033[92m'
@@ -28,16 +35,20 @@ start_time = datetime.now()
 start = time.time()
 today=start_time.strftime("%d/%m/%Y %H:%M:%S")
 
-dscr ="Simple URL Tester"
-version = "# Version Script : 0.1"
-requis ="# Prerequis: Python3"
-auteur ="# Auteur : Abdou Khadre D. GAYE"
-date_execution = "# Date execution : {}".format(today)
-print(dscr.center(45),"\n","\n",version,"\n",auteur,"\n",date_execution,"\n", requis,"\n")
+today=date.today()
+def entete():
+    dscr ="Simple URL checker "
+    version = "# Version Script : 0.1"
+    requis ="# Prerequis: Python3"
+    auteur ="# Auteur : Abdou Khadre D. GAYE"
+    date_creation="# Date : {}".format(today)
+    print(dscr.center(45),"\n","\n",version,"\n",auteur,"\n",date_creation,"\n", requis,"\n")
 
-# filename = str(input("Entrez le nom le du fichier avec les URLs : "))
+entete()
 
-filename = "URL.txt"
+# filename = str(input("Entrez le nom le du fichier contenant les URLs : "))
+
+filename = "nsl.txt"
 # filename = "tst.txt"
 # le script et le fichier urls.txt doivent etre dans le meme dossier
 DIR=os.path.dirname(__file__)
@@ -60,9 +71,9 @@ else:
     file_status = color+"[OK]"+ENDC
 
 line = '----'
-print(line[0]*70,)
+print(line[0]*80,)
 print ("| Nombre d'URL  :",len(count),'|','Date :', today,"| Status fichier URL :",file_status, "|")
-print(line[0] * 70)
+print(line[0] *80)
 
 
 
@@ -73,15 +84,12 @@ bad_file = csv.writer(open(bad_file, 'w'))
 bad_file.writerow(['URL', 'Raison', 'Date'])
 
 good_file = csv.writer(open(good_file, 'w'))
-good_file.writerow(['URL', 'CodeResponse', 'SFRViaBack', 'SFRVia', 'Date'])
+good_file.writerow(['URL', 'CodeResponse','HEARDER', 'Date'])
 
 
 
-threads = []
-# headers = []
 
 def checker():
-    global SFRVia, SFRViaBack, chaineAcces
 
     count = 0
     good_url = 0
@@ -107,7 +115,7 @@ def checker():
 
                     print([count],"Traitement : ", url ,"\n[CR] Code : ",rc, "\n[-] Header :", head, "\n")
                     good_url += 1
-                    good_file.writerow([url,rc,SFRViaBack,SFRVia,today])
+                    good_file.writerow([url,rc,head,today])
                 else:
                     print([count],"Traitement : ", url ,"\n[CR] Code : ",rc,"\n[-] Response : ",rep, "\n")
                     bad_url += 1
@@ -118,8 +126,12 @@ def checker():
                 bad_file.writerow([url,e,today])
         end_time = datetime.now()
         duree = end_time - start_time
-        print("\n********************************"+color1+"\nBons URL  (200-404 OK):"+ENDC,[good_url],"\n--------------------------------", color2+"\nMauvaises URL :"+ENDC,[bad_url],"\n--------------------------------", "\nTotal URL :",[count],"\tDUREE: {} ".format(duree),"\n--------------------------------\n""********************************")
+        deco1 = "****"
+        deco2 ="----"
+        print("\n"+deco1[0]*60+color1+"\nBons URL  (200-404 OK):"+ENDC,[good_url],"\n"+deco2[0]*60,color2+"\nMauvaises URL :"+ENDC,[bad_url],"\n"+deco2[0]*60+"\nTotal URL :",[count],"\tDUREE: {} ".format(duree),"\n"+deco2[0]*60+"\n"+deco1[0]*60)
 
+
+threads = []
 t = threading.Thread(target=checker)
 threads.append(t)
 t.start()
