@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
-
-
-import requests
-import csv, re
-import time
+import urllib3, urllib.request
+import concurrent.futures
+import urllib.request
 import os, sys, pathlib
-import logging
-import threading
+from os import name, system
 from datetime import date,datetime
-from socket import timeout
-from os import system, name
+import time
+from time import sleep
+import requests
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import as_completed
+import csv
 
 
+# disable warnings
+urllib3.disable_warnings()
 
 # Remove all whitespace in file
 # ^(\s)*$\n
@@ -26,113 +29,120 @@ def clear():
         _ = system('clear')
 clear()
 
-GREEN = '\033[92m'
-RED = '\033[91m'
-ENDC = '\033[0m'
 
-sleeptime=0.5
 start_time = datetime.now()
-start = time.time()
+# start = time.time()
 today=start_time.strftime("%d/%m/%Y %H:%M:%S")
 
-today=date.today()
-def entete():
-    dscr ="Simple URL checker "
-    version = "# Version Script : 0.1"
-    requis ="# Prerequis: Python3"
-    auteur ="# Auteur : Abdou Khadre D. GAYE"
-    date_creation="# Date : {}".format(today)
-    print(dscr.center(45),"\n","\n",version,"\n",auteur,"\n",date_creation,"\n", requis,"\n")
 
-entete()
+dscr ="Simple URL Tester"
+version = "# Version Script : 0.2"
+requis ="# Prerequis: Python3"
+auteur ="# Auteur : Djily GAYE"
+equipe = "# Equipe: XXXX"
+date_execution = "# Date execution : {}".format(today)
+print(dscr.center(45),"\n","\n",version,"\n",equipe,"\n",date_execution,"\n", requis,"\n")
 
 # filename = str(input("Entrez le nom le du fichier contenant les URLs : "))
+filename = "URLs.txt"
 
-filename = "nsl.txt"
-# filename = "tst.txt"
 # le script et le fichier urls.txt doivent etre dans le meme dossier
 DIR=os.path.dirname(__file__)
 file=os.path.join(os.path.dirname(__file__), filename)
 
+GREEN = '\033[92m'
+RED = '\033[91m'
+ENDC = '\033[0m'
+
 try:
     f = open(file, 'r')
     count = f.readlines()
+    if len(count) == 0 :
+        color=RED
+        print(color+"Le fichier URL",file," est vide !"+ENDC)
+        file_status = sys.exit()
+    else:
+        color=GREEN
+        file_status = color+"[OK]"+ENDC
 except:
     color=RED
     print(color+"Le fichier URL",file," n'existe pas !"+ENDC)
     file_status = sys.exit()
 
-if len(count) == 0 :
-    color=RED
-    print(color+"Le fichier URL",file," est vide !"+ENDC)
-    file_status = sys.exit()
-else:
-    color=GREEN
-    file_status = color+"[OK]"+ENDC
-
 line = '----'
-print(line[0]*80,)
+print(line[0]*70,)
 print ("| Nombre d'URL  :",len(count),'|','Date :', today,"| Status fichier URL :",file_status, "|")
-print(line[0] *80)
+print(line[0] * 70)
 
 
+filename = "tt.txt"
+# le script et le fichier urls.txt doivent etre dans le meme dossier
+DIR=os.path.dirname(__file__)
 
-good_file = os.path.join(os.path.dirname(__file__), 'good_urls_'+start_time.strftime("%d-%m-%Y_%H-%M")+'.csv')
-bad_file = os.path.join(os.path.dirname(__file__), 'bad_urls_'+start_time.strftime("%d-%m-%Y_%H-%M")+'.csv')
-# Initialisation
-bad_file = csv.writer(open(bad_file, 'w'))
-bad_file.writerow(['URL', 'Raison', 'Date'])
-
-good_file = csv.writer(open(good_file, 'w'))
-good_file.writerow(['URL', 'CodeResponse','HEARDER', 'Date'])
+report = os.path.join(os.path.dirname(__file__), 'report_'+start_time.strftime("%d-%m-%Y_%H-%M")+'.csv')
+report = csv.writer(open(report, 'w'))
+report.writerow(['URL', 'Response', 'SFRViaBack', 'SFRVia', 'Date'])
 
 
+def load_url(url, timeout):
+    chaineAcces,SFRViaBack, SFRVia,rc,rep = "","","","",""
+    try:
+        url=url.strip()
+        with requests.get(url,  timeout=timeout, verify=False, allow_redirects=True) as r:
+            rc = r.status_code
+            head = dict(r.headers)
+            rep = r.reason
+            # on recupere toute la chaine d'acces
+            for k, v in head.items():
+                if k == "SFRViaBack":
+                    SFRViaBack = k + " " +v
+                if  k == "SFRVia":
+                    SFRVia = k + " " +v
+            if  rc==200 or rc<=404:
+                chaineAcces = SFRViaBack +"\t"+ SFRVia
+                report.writerow([url,rc,SFRViaBack,SFRVia,today])
+            else:
+                report.writerow([url,str(rc)+"-"+rep,SFRViaBack,SFRVia,today])
+    except Exception as e:
+        report.writerow([url,e,SFRViaBack,SFRVia,today])
+    return rc,rep,chaineAcces
 
 
-def checker():
+file=os.path.join(os.path.dirname(__file__), filename)
+count=0
+URLS=[]
+good,bad = [],[]
+def main():
 
-    count = 0
-    good_url = 0
-    bad_url = 0
-    color1 = GREEN
-    color2 = RED
-
-    with open(file,"r") as f:
+    with open(file,'r') as f:
         for url in f.readlines():
+            url = url.replace('\n','')
             if not url.strip():
                 continue
-            if url:
-                url = url.replace('\n','')
-                # time.sleep(sleeptime)
-                print("\n")
-                count += 1
+            URLS.append(url)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=300) as executor:
+        futures = {executor.submit(load_url, url, 3): url for url in URLS}
+
+        for future in concurrent.futures.as_completed(futures):
+            url = futures[future]
             try:
-                r = requests.get(url, timeout=10, verify=False, allow_redirects=True)
-                rc = r.status_code
-                head = r.headers
-                rep = r.reason
-                if  rc==200 or rc<=404:
-
-                    print([count],"Traitement : ", url ,"\n[CR] Code : ",rc, "\n[-] Header :", head, "\n")
-                    good_url += 1
-                    good_file.writerow([url,rc,head,today])
-                else:
-                    print([count],"Traitement : ", url ,"\n[CR] Code : ",rc,"\n[-] Response : ",rep, "\n")
-                    bad_url += 1
-                    bad_file.writerow([url,str(rc)+"-"+rep,today])
+                data = future.result()
             except Exception as e:
-                print([count]," URL : ", url.replace('\n',''), "\n[CR] Response : ", e)
-                bad_url += 1
-                bad_file.writerow([url,e,today])
-        end_time = datetime.now()
-        duree = end_time - start_time
-        deco1 = "****"
-        deco2 ="----"
-        print("\n"+deco1[0]*60+color1+"\nBons URL  (200-404 OK):"+ENDC,[good_url],"\n"+deco2[0]*60,color2+"\nMauvaises URL :"+ENDC,[bad_url],"\n"+deco2[0]*60+"\nTotal URL :",[count],"\tDUREE: {} ".format(duree),"\n"+deco2[0]*60+"\n"+deco1[0]*60)
+                print('{} generated an exception: {}'.format(url, e))
+            else:
+                if (200 or 404 or 401 or 403 or "OK") in data:
+                    print("OK : {},{}".format(url, data))
+                    good.append(url)
+                else:
+                    print("KO: {},{}".format(url, data))
+                    bad.append(url)
 
+if __name__ == "__main__":
+    if not sys.version_info[0] == 3:
+        raise Exception("Please Upgrade or Downgrade your python to python 3.")
+    main()
 
-threads = []
-t = threading.Thread(target=checker)
-threads.append(t)
-t.start()
-
+end_time = datetime.now()
+duration = end_time - start_time
+count = len(URLS)
+print("\n\tTotal urls : {}".format(count),GREEN+"\tOK :{}".format(len(good))+ENDC,RED+"\tKO :{}".format(len(bad))+ENDC,"\tDuration : {}".format(duration),"\n")
