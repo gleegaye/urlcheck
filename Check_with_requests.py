@@ -94,17 +94,17 @@ def load_url(url, timeout):
             rep = r.reason
             # on recupere toute la chaine d'acces
             for k, v in head.items():
-                if k == "SFRViaBack":
-                    SFRViaBack = k + " " +v
+                if k == "ViaBack":
+                    ViaBack = k + " " +v
                 if  k == "SFRVia":
-                    SFRVia = k + " " +v
+                    Via = k + " " +v
             if  rc==200 or rc<=404:
-                chaineAcces = SFRViaBack +"\t"+ SFRVia
-                report.writerow([url,rc,SFRViaBack,SFRVia,today])
+                chaineAcces = ViaBack +"\t"+ Via
+                report.writerow([url,rc,ViaBack,Via,today])
             else:
-                report.writerow([url,str(rc)+"-"+rep,SFRViaBack,SFRVia,today])
+                report.writerow([url,str(rc)+"-"+rep,ViaBack,Via,today])
     except Exception as e:
-        report.writerow([url,e,SFRViaBack,SFRVia,today])
+        report.writerow([url,e,ViaBack,Via,today])
     return rc,rep,chaineAcces
 
 
