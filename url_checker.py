@@ -16,7 +16,7 @@ ENDC = '\033[0m'
 
 dscr ="Simple tester d'URL "
 version = "# Version : 0.1"
-auteur ="# Auteur : Abdou Khadre D. GAYE"
+auteur ="# Auteur : Djily GAYE"
 date_creation="# Date : 22/05/2020"
 print(dscr.center(45),"\n","\n",version,"\n",auteur,"\n",date_creation,"\n")
 
