@@ -117,6 +117,7 @@ def main():
     with open(file,'r') as f:
         for url in f.readlines():
             url = url.replace('\n','')
+            url = url.replace('\x00','')
             if not url.strip():
                 continue
             URLS.append(url)
