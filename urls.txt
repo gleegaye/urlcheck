@@ -12,3 +12,4 @@ http://www.twitter.com
 http://www.google.com/asdfasdfasdf
 http://www.cnn.com
 http://www.NotARealDomainJustMadeItUpFoobar.co
+https://docs.gitea.io/en-us/install-with-docker-rootless/
