@@ -81,11 +81,11 @@ DIR=os.path.dirname(__file__)
 
 report = os.path.join(os.path.dirname(__file__), 'report_'+start_time.strftime("%d-%m-%Y_%H-%M")+'.csv')
 report = csv.writer(open(report, 'w'))
-report.writerow(['URL', 'Response', 'SFRViaBack', 'SFRVia', 'Date'])
+report.writerow(['URL', 'Response', ' ViaBack', 'Via', 'Date'])
 
 
 def load_url(url, timeout):
-    chaineAcces,SFRViaBack, SFRVia,rc,rep = "","","","",""
+    chaineAcces,ViaBack, Via,rc,rep = "","","","",""
     try:
         url=url.strip()
         with requests.get(url,  timeout=timeout, verify=False, allow_redirects=True) as r:
@@ -96,7 +96,7 @@ def load_url(url, timeout):
             for k, v in head.items():
                 if k == "ViaBack":
                     ViaBack = k + " " +v
-                if  k == "SFRVia":
+                if  k == "Via":
                     Via = k + " " +v
             if  rc==200 or rc<=404:
                 chaineAcces = ViaBack +"\t"+ Via
